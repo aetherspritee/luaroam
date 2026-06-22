@@ -233,4 +233,32 @@ function M.update_entry_field(path, citekey, field_name, value)
   return true
 end
 
+-- Parse a single BibTeX entry from a string
+function M.parse_entry_string(content)
+  local entry_type, citekey = content:match("@(%a+)%s*%{%s*([^,%s]+)%s*,")
+  if not entry_type then return nil end
+  
+  local brace_start = content:find("{")
+  if not brace_start then return nil end
+  
+  local closing_brace = find_matching_brace(content, brace_start + 1)
+  if not closing_brace then return nil end
+  
+  local comma_pos = content:find(",", brace_start)
+  if not comma_pos then return nil end
+  
+  local fields_str = content:sub(comma_pos + 1, closing_brace - 1)
+  local fields = parse_fields(fields_str)
+  
+  return {
+    type = entry_type:lower(),
+    citekey = citekey,
+    title = fields.title,
+    author = fields.author,
+    year = fields.year,
+    url = fields.url,
+    fields = fields,
+  }
+end
+
 return M

@@ -55,19 +55,38 @@ function M.add_arxiv_entry(input, callback)
       end
 
       local fetched_bib = obj.stdout
-      -- Validate that it contains a valid entry
-      local citekey = fetched_bib:match("@%a+%s*%{%s*([^,%s]+)%s*,")
-      if not citekey then
-        vim.notify("[luaroam] Failed to parse a valid BibTeX entry from response", vim.log.levels.ERROR)
+      
+      -- Validate and parse the entry
+      local parsed_entry = parser.parse_entry_string(fetched_bib)
+      if not parsed_entry then
+        vim.notify("[luaroam] Failed to parse fetched BibTeX entry", vim.log.levels.ERROR)
         return
       end
+
+      -- Format the new citekey based on configuration
+      local new_citekey = parsed_entry.citekey
+      if config.options.format_citekey then
+        new_citekey = config.options.format_citekey(parsed_entry)
+      end
+      
+      -- Replace citekey in the raw string
+      local modified_bib = fetched_bib:gsub("(@%a+%s*%{%s*)[^,%s]+", "%1" .. new_citekey, 1)
 
       -- Check for duplicates in current bibtex file
       local current_entries = parser.parse_file(bib_path)
       for _, entry in ipairs(current_entries) do
-        if entry.citekey == citekey then
-          vim.notify("[luaroam] Entry " .. citekey .. " already exists in BibTeX file", vim.log.levels.WARN)
-          if callback then callback(entry) end
+        if entry.citekey == new_citekey then
+          vim.notify("[luaroam] Entry " .. new_citekey .. " already exists in BibTeX file", vim.log.levels.WARN)
+          
+          -- Download PDF if missing
+          local pdf = require("luaroam.pdf")
+          if not pdf.has_local_pdf(entry) then
+            pdf.download_pdf(entry, function()
+              if callback then callback(entry) end
+            end)
+          else
+            if callback then callback(entry) end
+          end
           return
         end
       end
@@ -102,28 +121,41 @@ function M.add_arxiv_entry(input, callback)
       end
 
       local prefix = needs_leading_newline and "\n" or ""
-      if not fetched_bib:match("\n$") then
-        fetched_bib = fetched_bib .. "\n"
+      if not modified_bib:match("\n$") then
+        modified_bib = modified_bib .. "\n"
       end
 
-      write_f:write(prefix .. fetched_bib)
+      write_f:write(prefix .. modified_bib)
       write_f:close()
 
-      vim.notify("[luaroam] Successfully added " .. citekey .. " to " .. bib_path, vim.log.levels.INFO)
+      vim.notify("[luaroam] Successfully added " .. new_citekey .. " to " .. bib_path, vim.log.levels.INFO)
 
-      if callback then
-        -- Find the newly added entry in the file to get the correct structure
-        local new_entries = parser.parse_file(bib_path)
-        local new_entry = nil
-        for _, entry in ipairs(new_entries) do
-          if entry.citekey == citekey then
-            new_entry = entry
-            break
+      -- Find the newly added entry in the file
+      local new_entries = parser.parse_file(bib_path)
+      local new_entry = nil
+      for _, entry in ipairs(new_entries) do
+        if entry.citekey == new_citekey then
+          new_entry = entry
+          break
+        end
+      end
+
+      if new_entry then
+        -- Automatically download PDF and name it after the citekey
+        local pdf = require("luaroam.pdf")
+        pdf.download_pdf(new_entry, function(pdf_path)
+          if callback then
+            -- Reparse to ensure file field changes are loaded
+            local updated_entries = parser.parse_file(bib_path)
+            for _, entry in ipairs(updated_entries) do
+              if entry.citekey == new_citekey then
+                callback(entry)
+                return
+              end
+            end
+            callback(new_entry)
           end
-        end
-        if new_entry then
-          callback(new_entry)
-        end
+        end)
       end
     end)
   end)
