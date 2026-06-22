@@ -1,5 +1,6 @@
 # luaroam.nvim
 
+**This project has been developed entirely by AI.**
 A lightweight, dependency-free Neovim plugin written in Lua to keep track of academic papers you've read. It interfaces with a configurable BibTeX file to list papers, create and open associated Markdown notes, insert citations, and fetch references directly from arXiv links.
 
 ## Features
