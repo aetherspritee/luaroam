@@ -3,41 +3,95 @@ local config = require("luaroam.config")
 local parser = require("luaroam.parser")
 local arxiv = require("luaroam.arxiv")
 
--- Helper to check if entry has a local PDF
-function M.has_local_pdf(entry)
-  local file_field = entry.fields.file
-  if file_field and file_field ~= "" then
-    if vim.fn.filereadable(vim.fn.expand(file_field)) == 1 then
-      return true
-    end
+local function extract_paths(file_field)
+  local paths = {}
+  if not file_field or file_field == "" then
+    return paths
   end
-  local pdf_dir = config.get("pdf_dir")
-  if pdf_dir then
-    local path = pdf_dir .. "/" .. entry.citekey .. ".pdf"
-    if vim.fn.filereadable(path) == 1 then
-      return true
+
+  for part in file_field:gmatch("[^;]+") do
+    local clean_part = part:gsub(":[Pp][Dd][Ff]$", "")
+    local path = clean_part
+    if clean_part:match("^:") then
+      path = clean_part:sub(2)
+    else
+      local is_windows_drive = clean_part:match("^%a:[/\\]")
+      if not is_windows_drive then
+        local desc_match = clean_part:match("^[^:]+:(.+)")
+        if desc_match then
+          path = desc_match
+        end
+      end
     end
+    
+    path = path:gsub("^%s+", ""):gsub("%s+$", "")
+    table.insert(paths, path)
   end
-  return false
+  return paths
+end
+
+local function resolve_path(path, bib_dir)
+  local expanded = vim.fn.expand(path)
+  
+  local is_abs = false
+  if expanded:match("^/") or expanded:match("^%a:[/\\]") then
+    is_abs = true
+  end
+
+  if not is_abs and bib_dir then
+    expanded = bib_dir .. "/" .. path
+  end
+  
+  return vim.fn.expand(expanded)
 end
 
 -- Helper to get the local PDF path for an entry
 function M.get_local_pdf_path(entry)
+  local bib_path = config.get("bib_path")
+  local bib_dir = bib_path and vim.fn.fnamemodify(bib_path, ":h") or nil
+  local pdf_dir = config.get("pdf_dir")
+
+  local keys = { entry.citekey, entry.citekey:lower(), entry.citekey:upper() }
+
+  -- 1. Check pdf_dir/citekey.pdf (try exact, lower, and upper case)
+  if pdf_dir then
+    for _, key in ipairs(keys) do
+      local path = pdf_dir .. "/" .. key .. ".pdf"
+      local resolved = resolve_path(path, bib_dir)
+      if vim.fn.filereadable(resolved) == 1 then
+        return resolved
+      end
+    end
+  end
+
+  -- 2. Check bib_dir/citekey.pdf (same directory as bibtex file)
+  if bib_dir then
+    for _, key in ipairs(keys) do
+      local path = bib_dir .. "/" .. key .. ".pdf"
+      if vim.fn.filereadable(path) == 1 then
+        return path
+      end
+    end
+  end
+
+  -- 3. Check file field (as fallback)
   local file_field = entry.fields.file
   if file_field and file_field ~= "" then
-    local path = vim.fn.expand(file_field)
-    if vim.fn.filereadable(path) == 1 then
-      return path
+    local extracted = extract_paths(file_field)
+    for _, path in ipairs(extracted) do
+      local resolved = resolve_path(path, bib_dir)
+      if vim.fn.filereadable(resolved) == 1 then
+        return resolved
+      end
     end
   end
-  local pdf_dir = config.get("pdf_dir")
-  if pdf_dir then
-    local path = pdf_dir .. "/" .. entry.citekey .. ".pdf"
-    if vim.fn.filereadable(path) == 1 then
-      return path
-    end
-  end
+
   return nil
+end
+
+-- Helper to check if entry has a local PDF
+function M.has_local_pdf(entry)
+  return M.get_local_pdf_path(entry) ~= nil
 end
 
 -- Helper to get the remote PDF URL

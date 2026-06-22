@@ -99,19 +99,19 @@ You can map keys directly to the Lua API functions:
 
 ```lua
 -- Select from paper menu
-vim.keymap.set("n", "<leader>rp", require("luaroam").open_papers_menu, { desc = "LuaRoam Papers Menu" })
+vim.keymap.set("n", "<leader>rp", function() require("luaroam").open_papers_menu() end, { desc = "LuaRoam Papers Menu" })
 
 -- Direct actions
-vim.keymap.set("n", "<leader>rn", require("luaroam").open_note, { desc = "LuaRoam Open Note" })
-vim.keymap.set("n", "<leader>ri", require("luaroam").insert_reference, { desc = "LuaRoam Insert Citation" })
-vim.keymap.set("n", "<leader>ru", require("luaroam").open_url, { desc = "LuaRoam Open URL" })
-vim.keymap.set("n", "<leader>rb", require("luaroam").go_to_bib, { desc = "LuaRoam Go to BibTeX Entry" })
+vim.keymap.set("n", "<leader>rn", function() require("luaroam").open_note() end, { desc = "LuaRoam Open Note" })
+vim.keymap.set("n", "<leader>ri", function() require("luaroam").insert_reference() end, { desc = "LuaRoam Insert Citation" })
+vim.keymap.set("n", "<leader>ru", function() require("luaroam").open_url() end, { desc = "LuaRoam Open URL" })
+vim.keymap.set("n", "<leader>rb", function() require("luaroam").go_to_bib() end, { desc = "LuaRoam Go to BibTeX Entry" })
 
 -- PDF actions
-vim.keymap.set("n", "<leader>rf", require("luaroam").open_pdf, { desc = "LuaRoam Open PDF" })
-vim.keymap.set("n", "<leader>rd", require("luaroam").download_pdf, { desc = "LuaRoam Download PDF" })
-vim.keymap.set("n", "<leader>rs", require("luaroam").snacks_list_pdfs, { desc = "LuaRoam List PDFs (Snacks)" })
+vim.keymap.set("n", "<leader>rf", function() require("luaroam").open_pdf() end, { desc = "LuaRoam Open PDF" })
+vim.keymap.set("n", "<leader>rd", function() require("luaroam").download_pdf() end, { desc = "LuaRoam Download PDF" })
+vim.keymap.set("n", "<leader>rs", function() require("luaroam").snacks_list_pdfs() end, { desc = "LuaRoam List PDFs (Snacks)" })
 
 -- Add arXiv paper (prompts for input if no argument is passed)
-vim.keymap.set("n", "<leader>ra", require("luaroam").add_arxiv, { desc = "LuaRoam Add arXiv entry" })
+vim.keymap.set("n", "<leader>ra", function() require("luaroam").add_arxiv() end, { desc = "LuaRoam Add arXiv entry" })
 ```
