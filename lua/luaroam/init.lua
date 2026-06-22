@@ -187,9 +187,31 @@ function M.snacks_list_pdfs()
   pdf.snacks_list_pdfs()
 end
 
--- Add arXiv entry utility
+-- Add arXiv entry utility (handles nil input for direct keymap calls)
 function M.add_arxiv(link_or_id, callback)
-  arxiv.add_arxiv_entry(link_or_id, callback)
+  if link_or_id and link_or_id ~= "" then
+    arxiv.add_arxiv_entry(link_or_id, callback)
+  else
+    local cword = vim.fn.expand("<cWORD>")
+    cword = cword:gsub("^['\"%(%[%<]+", ""):gsub("['\"%)%]%>%.,;]+$", "")
+    
+    local is_arxiv = false
+    if cword:match("arxiv%.org") or cword:match("^arxiv:") or cword:match("^%d+%.%d+$") then
+      is_arxiv = true
+    end
+
+    if is_arxiv then
+      arxiv.add_arxiv_entry(cword, callback)
+    else
+      vim.ui.input({
+        prompt = "Enter arXiv Link or ID: ",
+      }, function(input)
+        if input and input ~= "" then
+          arxiv.add_arxiv_entry(input, callback)
+        end
+      end)
+    end
+  end
 end
 
 return M
