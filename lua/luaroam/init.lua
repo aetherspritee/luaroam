@@ -3,6 +3,7 @@ local config = require("luaroam.config")
 local parser = require("luaroam.parser")
 local notes = require("luaroam.notes")
 local arxiv = require("luaroam.arxiv")
+local pdf = require("luaroam.pdf")
 
 M.setup = config.setup
 
@@ -10,6 +11,7 @@ M.setup = config.setup
 M.parser = parser
 M.notes = notes
 M.arxiv = arxiv
+M.pdf = pdf
 
 local function clean_braces(str)
   if not str then return "" end
@@ -80,6 +82,8 @@ local function actions_menu(entry)
     "2. Insert Reference",
     "3. Open URL",
     "4. Go to BibTeX Entry",
+    "5. Open PDF (Local)",
+    "6. Download PDF",
   }
 
   vim.ui.select(options, {
@@ -94,6 +98,10 @@ local function actions_menu(entry)
       open_url(entry)
     elseif choice:match("^4") then
       go_to_bib(entry)
+    elseif choice:match("^5") then
+      pdf.open_pdf(entry)
+    elseif choice:match("^6") then
+      pdf.download_pdf(entry)
     end
   end)
 end
@@ -160,6 +168,23 @@ end
 
 function M.go_to_bib()
   M.select_paper("Go to BibTeX entry:", go_to_bib)
+end
+
+-- PDF Action functions
+function M.open_pdf()
+  M.select_paper("Open PDF for:", function(entry)
+    pdf.open_pdf(entry)
+  end)
+end
+
+function M.download_pdf()
+  M.select_paper("Download PDF for:", function(entry)
+    pdf.download_pdf(entry)
+  end)
+end
+
+function M.snacks_list_pdfs()
+  pdf.snacks_list_pdfs()
 end
 
 -- Add arXiv entry utility

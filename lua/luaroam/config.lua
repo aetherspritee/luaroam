@@ -3,6 +3,8 @@ local M = {}
 M.defaults = {
   bib_path = "~/references.bib",
   notes_dir = "~/notes/papers",
+  pdf_dir = "~/notes/pdfs",
+  pdf_viewer = nil, -- Uses default system opener if nil
   format_reference = function(entry)
     return "@" .. entry.citekey
   end,
@@ -36,7 +38,7 @@ M.options = vim.tbl_deep_extend("force", {}, M.defaults, {})
 
 function M.get(key)
   local val = M.options[key]
-  if type(val) == "string" and (key == "bib_path" or key == "notes_dir") then
+  if type(val) == "string" and (key == "bib_path" or key == "notes_dir" or key == "pdf_dir") then
     return vim.fn.expand(val)
   end
   return val

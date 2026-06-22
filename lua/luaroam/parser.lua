@@ -175,4 +175,62 @@ function M.parse_file(path)
   return entries
 end
 
+-- Update a specific field in a BibTeX entry
+function M.update_entry_field(path, citekey, field_name, value)
+  local entries = M.parse_file(path)
+  local entry = nil
+  for _, e in ipairs(entries) do
+    if e.citekey == citekey then
+      entry = e
+      break
+    end
+  end
+
+  if not entry then
+    return false, "Entry not found"
+  end
+
+  local lines = {}
+  local f = io.open(path, "r")
+  if not f then return false, "Cannot read file" end
+  for line in f:lines() do
+    table.insert(lines, line)
+  end
+  f:close()
+
+  local field_lower = field_name:lower()
+  local updated = false
+  if entry.fields[field_lower] then
+    local search_end = #lines
+    for _, e in ipairs(entries) do
+      if e.lnum > entry.lnum then
+        search_end = e.lnum - 1
+        break
+      end
+    end
+
+    for i = entry.lnum, search_end do
+      local line = lines[i]
+      if line:lower():match("^%s*" .. field_lower .. "%s*=") then
+        lines[i] = string.format("  %s = {%s},", field_name, value)
+        updated = true
+        break
+      end
+    end
+  end
+
+  if not updated then
+    table.insert(lines, entry.lnum + 1, string.format("  %s = {%s},", field_name, value))
+  end
+
+  f = io.open(path, "w")
+  if not f then return false, "Cannot write file" end
+  for _, line in ipairs(lines) do
+    f:write(line .. "\n")
+  end
+  f:close()
+
+  return true
+end
+
 return M

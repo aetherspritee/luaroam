@@ -50,4 +50,16 @@ vim.api.nvim_create_user_command("LuaRoamGoToBib", function()
   require("luaroam").go_to_bib()
 end, {})
 
+vim.api.nvim_create_user_command("LuaRoamOpenPdf", function()
+  require("luaroam").open_pdf()
+end, {})
+
+vim.api.nvim_create_user_command("LuaRoamDownloadPdf", function()
+  require("luaroam").download_pdf()
+end, {})
+
+vim.api.nvim_create_user_command("LuaRoamPdfs", function()
+  require("luaroam").snacks_list_pdfs()
+end, {})
+
 vim.api.nvim_create_user_command("LuaRoamAddArxiv", add_arxiv_cmd, { nargs = "?" })
