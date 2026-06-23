@@ -68,28 +68,35 @@ function M.add_arxiv_entry(input, callback)
       if config.options.format_citekey then
         new_citekey = config.options.format_citekey(parsed_entry)
       end
-      
-      -- Replace citekey in the raw string
-      local modified_bib = fetched_bib:gsub("(@%a+%s*%{%s*)[^,%s]+", "%1" .. new_citekey, 1)
 
-      -- Check for duplicates in current bibtex file
+      -- Build a set of existing citekeys for fast lookup
       local current_entries = parser.parse_file(bib_path)
+      local existing_keys = {}
       for _, entry in ipairs(current_entries) do
-        if entry.citekey == new_citekey then
-          vim.notify("[luaroam] Entry " .. new_citekey .. " already exists in BibTeX file", vim.log.levels.WARN)
-          
-          -- Download PDF if missing
-          local pdf = require("luaroam.pdf")
-          if not pdf.has_local_pdf(entry) then
-            pdf.download_pdf(entry, function()
-              if callback then callback(entry) end
-            end)
-          else
-            if callback then callback(entry) end
+        existing_keys[entry.citekey] = true
+      end
+
+      -- If the citekey already exists, append 'a', 'b', ... until unique
+      if existing_keys[new_citekey] then
+        local base_citekey = new_citekey
+        local found = false
+        for i = 0, 25 do
+          local candidate = base_citekey .. string.char(string.byte("a") + i)
+          if not existing_keys[candidate] then
+            new_citekey = candidate
+            found = true
+            break
           end
+        end
+        if not found then
+          vim.notify("[luaroam] Could not find a unique citekey for: " .. base_citekey, vim.log.levels.ERROR)
           return
         end
+        vim.notify("[luaroam] Citekey conflict — using adjusted citekey: " .. new_citekey, vim.log.levels.INFO)
       end
+
+      -- Replace citekey in the raw string
+      local modified_bib = fetched_bib:gsub("(@%a+%s*%{%s*)[^,%s]+", "%1" .. new_citekey, 1)
 
       -- Check if file exists and create parent directories if not
       local parent_dir = vim.fn.fnamemodify(bib_path, ":h")
