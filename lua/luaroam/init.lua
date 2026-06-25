@@ -19,14 +19,10 @@ local function clean_braces(str)
 end
 
 local function format_entry_display(entry)
-  local author = clean_braces(entry.author or "")
-  if author:find(" and ") then
-    author = author:sub(1, author:find(" and ") - 1) .. " et al."
-  end
   local title = clean_braces(entry.title or "")
   local year = entry.year or ""
   
-  local display = string.format("[%s] %s - %s", entry.citekey, author, title)
+  local display = string.format("[%s] %s", entry.citekey, title)
   if year ~= "" then
     display = display .. " (" .. year .. ")"
   end
