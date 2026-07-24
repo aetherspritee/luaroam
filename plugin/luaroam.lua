@@ -1,40 +1,52 @@
 if vim.g.loaded_luaroam then
-  return
+    return
 end
 vim.g.loaded_luaroam = 1
 
 vim.api.nvim_create_user_command("LuaRoamSelect", function()
-  require("luaroam").open_papers_menu()
+    require("luaroam").open_papers_menu()
 end, {})
 
 vim.api.nvim_create_user_command("LuaRoamInsert", function()
-  require("luaroam").insert_reference()
+    require("luaroam").insert_reference()
 end, {})
 
 vim.api.nvim_create_user_command("LuaRoamNote", function()
-  require("luaroam").open_note()
+    require("luaroam").open_note()
 end, {})
 
 vim.api.nvim_create_user_command("LuaRoamOpenUrl", function()
-  require("luaroam").open_url()
+    require("luaroam").open_url()
 end, {})
 
 vim.api.nvim_create_user_command("LuaRoamGoToBib", function()
-  require("luaroam").go_to_bib()
+    require("luaroam").go_to_bib()
 end, {})
 
 vim.api.nvim_create_user_command("LuaRoamOpenPdf", function()
-  require("luaroam").open_pdf()
+    require("luaroam").open_pdf()
 end, {})
 
 vim.api.nvim_create_user_command("LuaRoamDownloadPdf", function()
-  require("luaroam").download_pdf()
+    require("luaroam").download_pdf()
 end, {})
 
 vim.api.nvim_create_user_command("LuaRoamPdfs", function()
-  require("luaroam").snacks_list_pdfs()
+    require("luaroam").snacks_list_pdfs()
 end, {})
 
 vim.api.nvim_create_user_command("LuaRoamAddArxiv", function(opts)
-  require("luaroam").add_arxiv(opts.args)
+    require("luaroam").add_arxiv(opts.args)
 end, { nargs = "?" })
+
+vim.api.nvim_create_user_command("LuaRoamFollowLink", function()
+    require("luaroam").follow_link()
+end, {})
+
+vim.api.nvim_create_user_command("LuaRoamInsertLink", function()
+    require("luaroam").insert_link()
+end, {})
+
+vim.api.nvim_create_user_command("LuaRoamBacklinks", function()
+    require("luaroam").show_backlinks()
+end, {})

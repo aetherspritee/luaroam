@@ -46,6 +46,9 @@ require("luaroam").setup({
   -- Custom viewer (e.g., {"zathura"}, {"open", "-a", "Preview"}, or nil)
   pdf_viewer = nil,
 
+  -- Link style for inserted links ("markdown", "wiki", or "citekey")
+  link_format = "markdown",
+
   -- How references are formatted for insertion (default: "@citekey")
   format_reference = function(entry)
     return "@" .. entry.citekey
@@ -93,6 +96,9 @@ require("luaroam").setup({
 | `:LuaRoamDownloadPdf` | Select a paper and download its PDF from arXiv/URL, then write the `file` field in your BibTeX. |
 | `:LuaRoamPdfs` | Opens a `snacks.nvim` picker listing all papers with local PDFs. Selecting a paper immediately opens its PDF. |
 | `:LuaRoamAddArxiv` | Prompts for an arXiv link/ID or fetches the link under the cursor, fetches the BibTeX, and appends it to your BibTeX file. |
+| `:LuaRoamFollowLink` | Detects a link under the cursor (Wiki-link, Markdown link, or `@citekey`) and navigates to the target note. |
+| `:LuaRoamInsertLink` | Select a paper and insert a formatted link to its note at the cursor. |
+| `:LuaRoamBacklinks` | Search for and open a Quickfix list containing all notes referencing the current note. |
 
 ### Lua API
 
@@ -115,4 +121,9 @@ vim.keymap.set("n", "<leader>rs", function() require("luaroam").snacks_list_pdfs
 
 -- Add arXiv paper (prompts for input if no argument is passed)
 vim.keymap.set("n", "<leader>ra", function() require("luaroam").add_arxiv() end, { desc = "LuaRoam Add arXiv entry" })
+
+-- Linking actions
+vim.keymap.set("n", "gd", function() require("luaroam").follow_link() end, { desc = "LuaRoam Follow Link" })
+vim.keymap.set("n", "<leader>rl", function() require("luaroam").insert_link() end, { desc = "LuaRoam Insert Link" })
+vim.keymap.set("n", "<leader>rk", function() require("luaroam").show_backlinks() end, { desc = "LuaRoam Backlinks" })
 ```
